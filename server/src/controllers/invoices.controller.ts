@@ -37,7 +37,7 @@ export const getInvoiceById = async (req: AuthRequest, res: Response): Promise<v
     }
 
     const invoice = await prisma.invoice.findUnique({
-      where: { id },
+      where: { id: id as string },
       include: {
         order: {
           include: {
@@ -54,7 +54,7 @@ export const getInvoiceById = async (req: AuthRequest, res: Response): Promise<v
     }
 
     // Check if user is admin or the invoice belongs to the user
-    if (req.user?.role !== 'admin' && invoice.order.userId !== userId) {
+    if (req.user?.role !== 'admin' && (invoice as any).order?.userId !== userId) {
       res.status(403).json({ error: 'Forbidden' });
       return;
     }

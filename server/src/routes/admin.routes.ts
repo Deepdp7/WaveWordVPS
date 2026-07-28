@@ -35,4 +35,46 @@ router.post('/reset-db', requireAdmin, async (req, res, next) => {
 router.get('/support/tickets', getSupportTickets);
 router.put('/support/tickets/:id', updateSupportTicket);
 
+import si from 'systeminformation';
+
+router.get('/server-health', async (req, res) => {
+  try {
+    const [cpu, mem, fsSize, networkStats] = await Promise.all([
+      si.currentLoad(),
+      si.mem(),
+      si.fsSize(),
+      si.networkStats()
+    ]);
+    
+    // Aggregate disk space from all filesystems
+    let totalSize = 0;
+    let totalUsed = 0;
+    fsSize.forEach(fs => {
+      if (fs.type !== 'squashfs' && fs.size > 0) { // filter out snap mounts
+        totalSize += fs.size;
+        totalUsed += fs.used;
+      }
+    });
+
+    res.json({
+      cpu: cpu.currentLoad,
+      memory: {
+        total: mem.total,
+        used: mem.active
+      },
+      disk: {
+        total: totalSize,
+        used: totalUsed
+      },
+      network: {
+        rx: networkStats[0]?.rx_sec || 0,
+        tx: networkStats[0]?.tx_sec || 0
+      }
+    });
+  } catch (err) {
+    console.error('Server health error:', err);
+    res.status(500).json({ error: 'Failed to fetch server health' });
+  }
+});
+
 export default router;

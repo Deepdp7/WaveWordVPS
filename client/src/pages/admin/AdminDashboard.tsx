@@ -5,8 +5,151 @@ import { apiClient } from '../../api/client';
 import { Loader2, Plus, X } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+import { Activity, HardDrive, Cpu, Network, Eye, EyeOff } from 'lucide-react';
+
+const ServerHealthPanel = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [healthData, setHealthData] = useState<any>(null);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if ((username === 'admin' || username === 'deepdp') && password === '1414') {
+      setIsAuthenticated(true);
+    } else {
+      toast.error('Invalid credentials');
+    }
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    
+    const fetchHealth = async () => {
+      try {
+        const res = await apiClient.get('/admin/server-health');
+        setHealthData(res.data);
+      } catch (err) {
+        console.error(err);
+      }
+    };
+    
+    fetchHealth();
+    const interval = setInterval(fetchHealth, 2000);
+    return () => clearInterval(interval);
+  }, [isAuthenticated]);
+
+  if (!isAuthenticated) {
+    return (
+      <div className="flex justify-center items-center py-20">
+        <Card className="w-96 shadow-lg border-border">
+          <CardHeader>
+            <CardTitle>Server Health Login</CardTitle>
+            <p className="text-sm text-muted">Protected panel requires authentication.</p>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleLogin} className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-1 text-muted">Username</label>
+                <input type="text" value={username} onChange={e => setUsername(e.target.value)} className="w-full bg-background border border-border rounded-lg px-4 py-2" required />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1 text-muted">Password</label>
+                <div className="relative">
+                  <input 
+                    type={showPassword ? "text" : "password"} 
+                    value={password} 
+                    onChange={e => setPassword(e.target.value)} 
+                    className="w-full bg-background border border-border rounded-lg px-4 py-2 pr-10" 
+                    required 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-text"
+                  >
+                    {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
+              </div>
+              <Button type="submit" className="w-full">Unlock Dashboard</Button>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!healthData) return <div className="py-20 flex justify-center"><Loader2 className="animate-spin size-8 text-primary" /></div>;
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <Card className="shadow-sm border-border bg-surface">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-blue-500/10 text-blue-500 rounded-lg"><Cpu /></div>
+            <div>
+              <p className="text-sm text-muted">CPU Load</p>
+              <h3 className="text-2xl font-bold">{healthData.cpu.toFixed(1)}%</h3>
+            </div>
+          </div>
+          <div className="w-full bg-background rounded-full h-2">
+            <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(healthData.cpu, 100)}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Card className="shadow-sm border-border bg-surface">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-purple-500/10 text-purple-500 rounded-lg"><Activity /></div>
+            <div>
+              <p className="text-sm text-muted">RAM Usage</p>
+              <h3 className="text-2xl font-bold">{((healthData.memory.used / healthData.memory.total) * 100).toFixed(1)}%</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted mb-2">{(healthData.memory.used / 1024 / 1024 / 1024).toFixed(2)} GB / {(healthData.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB</p>
+          <div className="w-full bg-background rounded-full h-2">
+            <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${(healthData.memory.used / healthData.memory.total) * 100}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm border-border bg-surface">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg"><HardDrive /></div>
+            <div>
+              <p className="text-sm text-muted">Disk Storage</p>
+              <h3 className="text-2xl font-bold">{((healthData.disk.used / healthData.disk.total) * 100).toFixed(1)}%</h3>
+            </div>
+          </div>
+          <p className="text-xs text-muted mb-2">{(healthData.disk.used / 1024 / 1024 / 1024).toFixed(1)} GB / {(healthData.disk.total / 1024 / 1024 / 1024).toFixed(1)} GB</p>
+          <div className="w-full bg-background rounded-full h-2">
+            <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${(healthData.disk.used / healthData.disk.total) * 100}%` }}></div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm border-border bg-surface">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4 mb-4">
+            <div className="p-3 bg-orange-500/10 text-orange-500 rounded-lg"><Network /></div>
+            <div>
+              <p className="text-sm text-muted">Network I/O</p>
+              <h3 className="text-xl font-bold text-green-500 text-sm">↓ {(healthData.network.rx / 1024 / 1024).toFixed(2)} MB/s</h3>
+              <h3 className="text-xl font-bold text-red-500 text-sm">↑ {(healthData.network.tx / 1024 / 1024).toFixed(2)} MB/s</h3>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  );
+};
+
 export const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'customers' | 'orders' | 'tickets'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'customers' | 'orders' | 'tickets' | 'home server' | 'server health'>('overview');
   const [stats, setStats] = useState<any>({ mrr: 0, subs: 0, vps: 0, tickets: 0 });
   const [data, setData] = useState<any>({ orders: [], plans: [], customers: [], tickets: [], vps: [] });
   const [loading, setLoading] = useState(true);
@@ -144,7 +287,7 @@ export const AdminDashboard = () => {
       </div>
 
       <div className="flex flex-wrap gap-2 mb-8 border-b border-border pb-2">
-        {['overview', 'plans', 'customers', 'orders', 'tickets'].map(tab => (
+        {['overview', 'plans', 'customers', 'orders', 'tickets', 'home server', 'server health'].map(tab => (
           <button 
             key={tab}
             onClick={() => setActiveTab(tab as any)} 
@@ -154,6 +297,23 @@ export const AdminDashboard = () => {
           </button>
         ))}
       </div>
+
+      {activeTab === 'home server' && (
+        <Card className="shadow-sm border-border bg-surface">
+          <CardHeader>
+            <CardTitle className="text-xl">Terminal Interface (ttyd)</CardTitle>
+          </CardHeader>
+          <CardContent className="h-[75vh]">
+            <iframe 
+              src="https://server.waveword.in" 
+              className="w-full h-full border-0 rounded-lg bg-black"
+              title="Home Server Terminal"
+            />
+          </CardContent>
+        </Card>
+      )}
+
+      {activeTab === 'server health' && <ServerHealthPanel />}
 
       {activeTab === 'overview' && (
         <>

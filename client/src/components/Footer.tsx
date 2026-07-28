@@ -1,4 +1,3 @@
-import { Link } from 'react-router-dom';
 import { Mail, Phone, Globe, Cpu } from 'lucide-react';
 
 export const Footer = () => {

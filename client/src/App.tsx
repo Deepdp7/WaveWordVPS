@@ -1,6 +1,6 @@
-import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { Server } from 'lucide-react';
+import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import { useEffect } from 'react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PlansPage } from './pages/public/PlansPage';
@@ -84,11 +84,48 @@ const LandingPage = () => (
   </div>
 );
 
+const AutoLogout = () => {
+  const { isAuthenticated, logout } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let timeoutId: number;
+
+    const resetTimer = () => {
+      window.clearTimeout(timeoutId);
+      // 5 minutes = 300,000 ms
+      timeoutId = window.setTimeout(() => {
+        logout();
+        navigate('/login');
+      }, 300000);
+    };
+
+    const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart'];
+    
+    const handleActivity = () => {
+      resetTimer();
+    };
+
+    events.forEach(event => document.addEventListener(event, handleActivity));
+    resetTimer(); // Start the timer
+
+    return () => {
+      events.forEach(event => document.removeEventListener(event, handleActivity));
+      window.clearTimeout(timeoutId);
+    };
+  }, [isAuthenticated, logout, navigate]);
+
+  return null;
+};
+
 const App = () => {
   return (
     <BrowserRouter>
       <AuthProvider>
         <div className="min-h-screen bg-background text-text transition-colors duration-300 flex flex-col">
+          <AutoLogout />
           <Toaster position="top-right" />
           <Navbar />
           <div className="flex-grow">
