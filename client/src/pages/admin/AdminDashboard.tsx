@@ -1,18 +1,23 @@
 import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { apiClient } from '../../api/client';
-import { Loader2, Plus, X } from 'lucide-react';
+import { Loader2, Plus, X, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { Eye, EyeOff, Activity, HardDrive, Brain, Globe } from 'lucide-react';
 
-import { Activity, HardDrive, Cpu, Network, Eye, EyeOff } from 'lucide-react';
+import { ServerHealthDashboard } from '../../components/admin/ServerHealthDashboard';
+import { FileManager } from '../../components/admin/FileManager';
+import { AIAssistant } from '../../components/admin/AIAssistant';
+import { Domains } from '../../components/admin/Domains';
 
-const ServerHealthPanel = () => {
+const WaveWordPanel = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [healthData, setHealthData] = useState<any>(null);
+  const [subTab, setSubTab] = useState<'health' | 'files' | 'ai' | 'domains'>('health');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,29 +28,12 @@ const ServerHealthPanel = () => {
     }
   };
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    
-    const fetchHealth = async () => {
-      try {
-        const res = await apiClient.get('/admin/server-health');
-        setHealthData(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-    
-    fetchHealth();
-    const interval = setInterval(fetchHealth, 2000);
-    return () => clearInterval(interval);
-  }, [isAuthenticated]);
-
   if (!isAuthenticated) {
     return (
       <div className="flex justify-center items-center py-20">
         <Card className="w-96 shadow-lg border-border">
           <CardHeader>
-            <CardTitle>Server Health Login</CardTitle>
+            <CardTitle>WaveWord Panel Login</CardTitle>
             <p className="text-sm text-muted">Protected panel requires authentication.</p>
           </CardHeader>
           <CardContent>
@@ -81,75 +69,55 @@ const ServerHealthPanel = () => {
     );
   }
 
-  if (!healthData) return <div className="py-20 flex justify-center"><Loader2 className="animate-spin size-8 text-primary" /></div>;
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <Card className="shadow-sm border-border bg-surface">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-blue-500/10 text-blue-500 rounded-lg"><Cpu /></div>
-            <div>
-              <p className="text-sm text-muted">CPU Load</p>
-              <h3 className="text-2xl font-bold">{healthData.cpu.toFixed(1)}%</h3>
-            </div>
-          </div>
-          <div className="w-full bg-background rounded-full h-2">
-            <div className="bg-blue-500 h-2 rounded-full" style={{ width: `${Math.min(healthData.cpu, 100)}%` }}></div>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="flex gap-6 min-h-[70vh]">
+      <div className="w-64 shrink-0">
+        <Card className="bg-surface border-border sticky top-24">
+          <CardContent className="p-4 space-y-2">
+            <Button
+              variant={subTab === 'health' ? 'primary' : 'secondary'}
+              className="w-full justify-start gap-3"
+              onClick={() => setSubTab('health')}
+            >
+              <Activity size={18} /> Server Health
+            </Button>
+            <Button
+              variant={subTab === 'files' ? 'primary' : 'secondary'}
+              className="w-full justify-start gap-3"
+              onClick={() => setSubTab('files')}
+            >
+              <HardDrive size={18} /> File Management
+            </Button>
+            <Button
+              variant={subTab === 'domains' ? 'primary' : 'secondary'}
+              className="w-full justify-start gap-3"
+              onClick={() => setSubTab('domains')}
+            >
+              <Globe size={18} /> Domains
+            </Button>
+            <Button
+              variant={subTab === 'ai' ? 'primary' : 'secondary'}
+              className="w-full justify-start gap-3"
+              onClick={() => setSubTab('ai')}
+            >
+              <Brain size={18} /> AI Assistant
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
       
-      <Card className="shadow-sm border-border bg-surface">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-purple-500/10 text-purple-500 rounded-lg"><Activity /></div>
-            <div>
-              <p className="text-sm text-muted">RAM Usage</p>
-              <h3 className="text-2xl font-bold">{((healthData.memory.used / healthData.memory.total) * 100).toFixed(1)}%</h3>
-            </div>
-          </div>
-          <p className="text-xs text-muted mb-2">{(healthData.memory.used / 1024 / 1024 / 1024).toFixed(2)} GB / {(healthData.memory.total / 1024 / 1024 / 1024).toFixed(2)} GB</p>
-          <div className="w-full bg-background rounded-full h-2">
-            <div className="bg-purple-500 h-2 rounded-full" style={{ width: `${(healthData.memory.used / healthData.memory.total) * 100}%` }}></div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm border-border bg-surface">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-emerald-500/10 text-emerald-500 rounded-lg"><HardDrive /></div>
-            <div>
-              <p className="text-sm text-muted">Disk Storage</p>
-              <h3 className="text-2xl font-bold">{((healthData.disk.used / healthData.disk.total) * 100).toFixed(1)}%</h3>
-            </div>
-          </div>
-          <p className="text-xs text-muted mb-2">{(healthData.disk.used / 1024 / 1024 / 1024).toFixed(1)} GB / {(healthData.disk.total / 1024 / 1024 / 1024).toFixed(1)} GB</p>
-          <div className="w-full bg-background rounded-full h-2">
-            <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${(healthData.disk.used / healthData.disk.total) * 100}%` }}></div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <Card className="shadow-sm border-border bg-surface">
-        <CardContent className="p-6">
-          <div className="flex items-center gap-4 mb-4">
-            <div className="p-3 bg-orange-500/10 text-orange-500 rounded-lg"><Network /></div>
-            <div>
-              <p className="text-sm text-muted">Network I/O</p>
-              <h3 className="text-xl font-bold text-green-500 text-sm">↓ {(healthData.network.rx / 1024 / 1024).toFixed(2)} MB/s</h3>
-              <h3 className="text-xl font-bold text-red-500 text-sm">↑ {(healthData.network.tx / 1024 / 1024).toFixed(2)} MB/s</h3>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      <div className="flex-1 p-6 overflow-y-auto">
+        {subTab === 'health' && <ServerHealthDashboard />}
+        {subTab === 'files' && <FileManager />}
+        {subTab === 'domains' && <Domains />}
+        {subTab === 'ai' && <AIAssistant />}
+      </div>
     </div>
   );
 };
 
 export const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'customers' | 'orders' | 'tickets' | 'home server' | 'server health'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'plans' | 'customers' | 'orders' | 'tickets' | 'home server' | 'waveword panel'>('overview');
   const [stats, setStats] = useState<any>({ mrr: 0, subs: 0, vps: 0, tickets: 0 });
   const [data, setData] = useState<any>({ orders: [], plans: [], customers: [], tickets: [], vps: [] });
   const [loading, setLoading] = useState(true);
@@ -158,6 +126,7 @@ export const AdminDashboard = () => {
   const [formData, setFormData] = useState<any>({
     name: '', type: 'static', priceMonthly: 0, price1Year: '', price2Year: '', price3Year: ''
   });
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);
   
   // Refresh data function
   const fetchAdminData = async () => {
@@ -266,10 +235,24 @@ export const AdminDashboard = () => {
     setIsFormOpen(true);
   };
 
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    try {
+      await apiClient.delete(`/admin/orders/${orderToDelete}`);
+      toast.success('Order deleted successfully');
+      fetchAdminData();
+    } catch (err) {
+      toast.error('Failed to delete order');
+      console.error(err);
+    } finally {
+      setOrderToDelete(null);
+    }
+  };
+
   if (loading && data.plans.length === 0) return <div className="min-h-screen pt-24 flex justify-center"><Loader2 className="animate-spin text-primary size-8" /></div>;
 
   return (
-    <div className="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    <div className="pt-24 pb-12 w-full px-4 sm:px-8 lg:px-12 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Admin Console</h1>
         <div className="flex gap-2">
@@ -286,8 +269,29 @@ export const AdminDashboard = () => {
         </div>
       </div>
 
+      {orderToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <Card className="w-full max-w-md shadow-2xl border-border bg-surface animate-in fade-in zoom-in duration-200">
+            <CardHeader className="border-b border-border">
+              <CardTitle className="text-xl text-red-500 flex items-center gap-2">
+                <Trash2 className="size-5" /> Confirm Deletion
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="pt-6 pb-6">
+              <p className="text-muted-foreground text-center mb-6">
+                Are you sure you want to completely delete this order? All associated subscriptions and invoices will be permanently removed. This action cannot be undone!
+              </p>
+              <div className="flex gap-3 justify-end">
+                <Button variant="secondary" onClick={() => setOrderToDelete(null)} className="w-full">Cancel</Button>
+                <Button variant="primary" onClick={handleDeleteOrder} className="w-full bg-red-600 hover:bg-red-700 border-red-600 text-white">Delete Order</Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
       <div className="flex flex-wrap gap-2 mb-8 border-b border-border pb-2">
-        {['overview', 'plans', 'customers', 'orders', 'tickets', 'home server', 'server health'].map(tab => (
+        {['overview', 'plans', 'customers', 'orders', 'tickets', 'home server', 'waveword panel'].map(tab => (
           <button 
             key={tab}
             onClick={() => setActiveTab(tab as any)} 
@@ -313,7 +317,7 @@ export const AdminDashboard = () => {
         </Card>
       )}
 
-      {activeTab === 'server health' && <ServerHealthPanel />}
+      {activeTab === 'waveword panel' && <WaveWordPanel />}
 
       {activeTab === 'overview' && (
         <>
@@ -550,12 +554,15 @@ export const AdminDashboard = () => {
                       </span>
                     </td>
                     <td className="p-4">{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td className="p-4 text-right">
+                    <td className="p-4 text-right flex justify-end gap-2 items-center">
                       {order.invoices && order.invoices.length > 0 && (
-                        <a href={`/invoice/${order.invoices[0].id}`} target="_blank" rel="noopener noreferrer">
+                        <Link to={`/invoice/${order.invoices[0].id}`}>
                           <Button variant="outline" size="sm" className="h-7 text-xs">View Bill</Button>
-                        </a>
+                        </Link>
                       )}
+                      <Button variant="outline" size="sm" className="h-7 w-7 p-0 flex items-center justify-center text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={() => setOrderToDelete(order.id)} style={{ padding: 0 }}>
+                        <Trash2 style={{ width: 16, height: 16 }} />
+                      </Button>
                     </td>
                   </tr>
                 ))}

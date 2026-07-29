@@ -84,8 +84,7 @@ export const CheckoutPage = () => {
 
   const selectedCycle = cycles.find(c => c.id === billingCycle) || cycles[0];
   const subtotal = selectedCycle.price * selectedCycle.months * quantity;
-  const gst = Math.round(subtotal * 0.18);
-  const total = subtotal + gst;
+  const total = subtotal;
 
   // CSS variables for current theme
   const bgMain = isDarkMode ? 'bg-[#0a0a0e]' : 'bg-gray-50';
@@ -226,11 +225,7 @@ export const CheckoutPage = () => {
                   <span className="font-medium">Term Length</span>
                   <span className={`font-semibold ${textMain}`}>{selectedCycle.label}</span>
                 </div>
-                <div className={`flex justify-between items-center border-t pt-5 ${totalBorder} ${isDarkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-                  <span className="font-medium">18% GST</span>
-                  <span className={`font-semibold ${textMain}`}>₹{gst.toLocaleString('en-IN')}.00</span>
                 </div>
-              </div>
 
               <div className={`border-t pt-6 mb-8 ${totalBorder}`}>
                 <div className="flex justify-between items-end mb-2">

@@ -6,8 +6,8 @@ export const Footer = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
           <div>
-            <h3 className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-text to-muted mb-4 flex items-center gap-2">
-              <img src="/logo.png" alt="Wave Word Logo" className="h-6 w-6" />
+            <h3 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-text to-muted mb-4 flex items-center gap-2">
+              <img src="/logo.png" alt="Wave Word Logo" className="h-12 w-auto object-contain" />
               Wave Word
             </h3>
             <p className="text-muted max-w-sm">
@@ -32,8 +32,11 @@ export const Footer = () => {
             </div>
           </div>
         </div>
-        <div className="border-t border-border pt-8 text-center text-muted text-sm">
-          &copy; {new Date().getFullYear()} Wave Word. All rights reserved.
+        <div className="border-t border-border pt-8 flex flex-col md:flex-row justify-between items-center text-muted text-sm gap-4">
+          <div>&copy; {new Date().getFullYear()} Wave Word. All rights reserved.</div>
+          <div>
+            <a href="/terms" className="hover:text-primary transition-colors">Terms & Conditions</a>
+          </div>
         </div>
       </div>
     </footer>

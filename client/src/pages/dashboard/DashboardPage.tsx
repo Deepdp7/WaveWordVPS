@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
-import { HardDrive, Server, ExternalLink, Loader2, FileText, MessageSquare } from 'lucide-react';
+import { HardDrive, Server, Loader2, FileText, MessageSquare } from 'lucide-react';
 import { apiClient } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { Link } from 'react-router-dom';
@@ -61,7 +61,7 @@ export const DashboardPage = () => {
   if (loading) return <div className="min-h-screen pt-24 flex justify-center"><Loader2 className="animate-spin text-primary size-8" /></div>;
 
   return (
-    <div className="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
+    <div className="pt-24 pb-12 w-full px-4 sm:px-8 lg:px-12 min-h-screen">
       <div className="flex justify-between items-center mb-8">
         <h1 className="text-3xl font-bold">Welcome, {user?.name}</h1>
       </div>
@@ -120,12 +120,6 @@ export const DashboardPage = () => {
                     <div className="flex justify-between text-sm">
                       <span className="text-muted">Renews</span>
                       <span className="font-medium">{new Date(sub.endDate).toLocaleDateString()}</span>
-                    </div>
-                    <div className="pt-4 border-t border-border flex gap-3">
-                      <Button variant="secondary" size="sm" className="w-full">Manage</Button>
-                      <Button variant="primary" size="sm" className="w-full gap-2">
-                        Open Panel <ExternalLink className="size-4" />
-                      </Button>
                     </div>
                   </div>
                 </CardContent>

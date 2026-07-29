@@ -42,8 +42,7 @@ export const InvoicePage = () => {
     window.print();
   };
 
-  const gstAmount = Math.round(order.amount - (order.amount / 1.18));
-  const baseAmount = order.amount - gstAmount;
+  const baseAmount = order.amount;
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-12 px-4">
@@ -127,14 +126,7 @@ export const InvoicePage = () => {
         {/* Totals */}
         <div className="flex justify-end">
           <div className="w-64 space-y-3">
-            <div className="flex justify-between text-gray-600">
-              <span>Subtotal</span>
-              <span>₹{baseAmount.toLocaleString('en-IN')}.00</span>
-            </div>
-            <div className="flex justify-between text-gray-600">
-              <span>GST (18%)</span>
-              <span>₹{gstAmount.toLocaleString('en-IN')}</span>
-            </div>
+
             <div className="flex justify-between font-bold text-lg text-gray-900 border-t border-gray-200 pt-3">
               <span>Total Paid</span>
               <span>₹{order.amount.toLocaleString('en-IN')}.00</span>

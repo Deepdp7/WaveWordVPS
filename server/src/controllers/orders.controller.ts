@@ -40,8 +40,7 @@ export const createOrder = async (req: AuthRequest, res: Response): Promise<void
     else if (billingCycle === '3_years' && plan.price3Year) baseAmount = plan.price3Year * 36;
     else if (billingCycle === 'yearly' && plan.price1Year) baseAmount = plan.price1Year * 12; // fallback for old data
 
-    const gstAmount = Math.round(baseAmount * 0.18);
-    const amount = (baseAmount + gstAmount) * quantity;
+    const amount = baseAmount * quantity;
 
     // Create DB Order
     const dbOrder = await prisma.order.create({

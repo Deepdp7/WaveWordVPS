@@ -8,6 +8,7 @@ import { CheckoutPage } from './pages/public/CheckoutPage';
 import { InvoicePage } from './pages/public/InvoicePage';
 import { LoginPage } from './pages/auth/LoginPage';
 import { SignupPage } from './pages/auth/SignupPage';
+import { TermsPage } from './pages/public/TermsPage';
 import { DashboardPage } from './pages/dashboard/DashboardPage';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { Footer } from './components/Footer';
@@ -18,11 +19,11 @@ const Navbar = () => {
   return (
     <nav className="fixed w-full z-50 glass border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 group">
-              <img src="/logo.png" alt="Wave Word Logo" className="h-8 w-8" />
-              <span className="text-xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-text to-muted">
+              <img src="/logo.png" alt="Wave Word Logo" className="h-16 w-auto object-contain" />
+              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-text to-muted">
                 Wave Word VPS Hosting
               </span>
             </Link>
@@ -138,6 +139,7 @@ const App = () => {
               <Route path="/signup" element={<SignupPage />} />
               <Route path="/dashboard" element={<DashboardPage />} />
               <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/terms" element={<TermsPage />} />
             </Routes>
           </div>
           <Footer />
