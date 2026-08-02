@@ -70,34 +70,34 @@ const WaveWordPanel = () => {
   }
 
   return (
-    <div className="flex gap-6 min-h-[70vh]">
-      <div className="w-64 shrink-0">
-        <Card className="bg-surface border-border sticky top-24">
-          <CardContent className="p-4 space-y-2">
+    <div className="flex flex-col md:flex-row gap-6 min-h-[70vh]">
+      <div className="w-full md:w-64 shrink-0">
+        <Card className="bg-surface border-border sticky top-24 z-10">
+          <CardContent className="p-4 flex flex-row md:flex-col gap-2 overflow-x-auto no-scrollbar">
             <Button
               variant={subTab === 'health' ? 'primary' : 'secondary'}
-              className="w-full justify-start gap-3"
+              className="whitespace-nowrap md:w-full justify-start gap-3"
               onClick={() => setSubTab('health')}
             >
               <Activity size={18} /> Server Health
             </Button>
             <Button
               variant={subTab === 'files' ? 'primary' : 'secondary'}
-              className="w-full justify-start gap-3"
+              className="whitespace-nowrap md:w-full justify-start gap-3"
               onClick={() => setSubTab('files')}
             >
               <HardDrive size={18} /> File Management
             </Button>
             <Button
               variant={subTab === 'domains' ? 'primary' : 'secondary'}
-              className="w-full justify-start gap-3"
+              className="whitespace-nowrap md:w-full justify-start gap-3"
               onClick={() => setSubTab('domains')}
             >
               <Globe size={18} /> Domains
             </Button>
             <Button
               variant={subTab === 'ai' ? 'primary' : 'secondary'}
-              className="w-full justify-start gap-3"
+              className="whitespace-nowrap md:w-full justify-start gap-3"
               onClick={() => setSubTab('ai')}
             >
               <Brain size={18} /> AI Assistant
@@ -235,6 +235,18 @@ export const AdminDashboard = () => {
     setIsFormOpen(true);
   };
 
+  const handleDeletePlan = async (id: string) => {
+    if (!window.confirm('Are you sure you want to delete this plan?')) return;
+    try {
+      await apiClient.delete(`/admin/plans/${id}`);
+      toast.success('Plan deleted successfully');
+      fetchAdminData();
+    } catch (err) {
+      console.error(err);
+      toast.error('Failed to delete plan');
+    }
+  };
+
   const handleDeleteOrder = async () => {
     if (!orderToDelete) return;
     try {
@@ -253,9 +265,9 @@ export const AdminDashboard = () => {
 
   return (
     <div className="pt-24 pb-12 w-full px-4 sm:px-8 lg:px-12 min-h-screen">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-8">
         <h1 className="text-3xl font-bold">Admin Console</h1>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={fetchAdminData}>Refresh Data</Button>
           <Button variant="outline" className="text-red-500 border-red-500 hover:bg-red-500 hover:text-white" onClick={async () => {
             if (confirm('Are you sure you want to completely RESET the database? All users and orders will be lost!')) {
@@ -290,7 +302,7 @@ export const AdminDashboard = () => {
         </div>
       )}
 
-      <div className="flex flex-wrap gap-2 mb-8 border-b border-border pb-2">
+      <div className="flex gap-2 mb-8 border-b border-border pb-2 overflow-x-auto whitespace-nowrap no-scrollbar">
         {['overview', 'plans', 'customers', 'orders', 'tickets', 'home server', 'waveword panel'].map(tab => (
           <button 
             key={tab}
@@ -418,7 +430,7 @@ export const AdminDashboard = () => {
                 <h3 className="font-medium">{editingPlanId ? 'Edit Plan' : 'New Plan Details'}</h3>
                 <button onClick={() => setIsFormOpen(false)}><X className="size-5 text-muted hover:text-text" /></button>
               </div>
-              <form onSubmit={handleSavePlan} className="grid grid-cols-2 gap-4">
+              <form onSubmit={handleSavePlan} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm text-muted mb-1">Plan Name</label>
                   <input type="text" required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="w-full bg-surface border border-border rounded px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-primary" />
@@ -459,7 +471,7 @@ export const AdminDashboard = () => {
                     </div>
                   </>
                 )}
-                <div className="col-span-2 mt-2">
+                <div className="md:col-span-2 mt-2">
                   <Button type="submit" variant="primary">{editingPlanId ? 'Update Plan' : 'Save Plan'}</Button>
                 </div>
               </form>
@@ -489,7 +501,12 @@ export const AdminDashboard = () => {
                       </span>
                     </td>
                     <td className="p-4 text-right">
-                      <Button variant="outline" size="sm" onClick={() => handleEditClick(plan)}>Edit</Button>
+                      <div className="flex justify-end gap-2 items-center">
+                        <Button variant="outline" size="sm" onClick={() => handleEditClick(plan)}>Edit</Button>
+                        <Button variant="outline" size="sm" onClick={() => handleDeletePlan(plan.id)} className="text-red-500 hover:bg-red-500/10 border-red-500/50">
+                          <Trash2 size={14} className="mr-1" /> Delete
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}

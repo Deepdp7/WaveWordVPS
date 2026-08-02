@@ -44,9 +44,9 @@ export const PlansPage = () => {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-3 gap-8">
+      <div className="flex flex-row md:grid md:grid-cols-3 gap-6 md:gap-8 overflow-x-auto pb-8 snap-x no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
         {plans.map((plan: any) => (
-          <Card key={plan.id} className="flex flex-col relative transition-transform hover:-translate-y-2 hover:shadow-[0_0_30px_rgba(79,70,229,0.15)]">
+          <Card key={plan.id} className="min-w-[85vw] sm:min-w-[300px] md:min-w-0 snap-center shrink-0 flex flex-col relative transition-transform md:hover:-translate-y-2 md:hover:shadow-[0_0_30px_rgba(79,70,229,0.15)]">
             {(plan.name.includes('Professional') || plan.name.includes('VPS 2')) && (
               <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full">
                 RECOMMENDED

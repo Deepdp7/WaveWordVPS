@@ -118,12 +118,12 @@ export const FileManager = () => {
 
   return (
     <Card className="w-full bg-surface border-border">
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <div>
+      <CardHeader className="flex flex-col sm:flex-row items-start sm:items-center justify-between pb-4 gap-4 w-full overflow-hidden">
+        <div className="w-full sm:w-auto overflow-hidden">
           <CardTitle>File Manager</CardTitle>
-          <p className="text-sm text-muted mt-1 font-mono bg-background px-2 py-1 rounded inline-block">{currentPath}</p>
+          <p className="text-sm text-muted mt-1 font-mono bg-background px-2 py-1 rounded inline-block max-w-full truncate">{currentPath}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
           <input 
             type="file" 
             multiple 
@@ -138,30 +138,31 @@ export const FileManager = () => {
             ref={folderInputRef} 
             onChange={handleUpload} 
           />
-          <Button variant="outline" size="sm" onClick={() => fetchFiles(currentPath)} title="Refresh">
+          <Button variant="primary" size="sm" onClick={() => fetchFiles(currentPath)} title="Refresh">
             <RefreshCw size={18} />
           </Button>
-          <Button variant="outline" onClick={() => fileInputRef.current?.click()} className="gap-2" disabled={uploading}>
+          <Button variant="primary" onClick={() => fileInputRef.current?.click()} className="gap-2" disabled={uploading}>
             <Upload size={18} /> Upload Files
           </Button>
-          <Button variant="outline" onClick={() => folderInputRef.current?.click()} className="gap-2" disabled={uploading}>
+          <Button variant="primary" onClick={() => folderInputRef.current?.click()} className="gap-2" disabled={uploading}>
             <UploadCloud size={18} /> Upload Folder
           </Button>
-          <Button variant="outline" onClick={handleCreateFolder} className="gap-2">
+          <Button variant="primary" onClick={handleCreateFolder} className="gap-2">
             <FolderPlus size={18} /> New Folder
           </Button>
-          <Button variant="outline" onClick={handleCreateFile} className="gap-2">
+          <Button variant="primary" onClick={handleCreateFile} className="gap-2">
             <FilePlus size={18} /> New File
           </Button>
         </div>
       </CardHeader>
       <CardContent>
-        <div className="border border-border rounded-lg overflow-hidden bg-background">
-          <div className="flex items-center gap-4 p-3 bg-surface border-b border-border text-sm font-medium text-muted">
+        <div className="border border-border rounded-lg overflow-x-auto bg-background w-full">
+          <div className="min-w-full w-full">
+            <div className="flex items-center gap-4 p-3 bg-surface border-b border-border text-sm font-medium text-muted">
             <div className="w-8"></div>
             <div className="flex-1">Name</div>
-            <div className="w-32 text-right">Size</div>
-            <div className="w-40 text-right">Modified</div>
+            <div className="w-32 text-right hidden sm:block">Size</div>
+            <div className="w-40 text-right hidden sm:block">Modified</div>
             <div className="w-16"></div>
           </div>
           
@@ -173,8 +174,8 @@ export const FileManager = () => {
               >
                 <div className="w-8 text-muted"><ArrowLeft size={20} /></div>
                 <div className="flex-1 font-medium">.. (Go Up)</div>
-                <div className="w-32 text-right text-muted">-</div>
-                <div className="w-40 text-right text-muted">-</div>
+                <div className="w-32 text-right text-muted hidden sm:block">-</div>
+                <div className="w-40 text-right text-muted hidden sm:block">-</div>
                 <div className="w-16"></div>
               </div>
             )}
@@ -197,23 +198,24 @@ export const FileManager = () => {
                   >
                     {file.name}
                   </div>
-                  <div className="w-32 text-right text-sm text-muted">
+                  <div className="w-32 text-right text-sm text-muted hidden sm:block">
                     {file.isDirectory ? '-' : formatSize(file.size)}
                   </div>
-                  <div className="w-40 text-right text-sm text-muted">
+                  <div className="w-40 text-right text-sm text-muted hidden sm:block">
                     {new Date(file.mtime).toLocaleDateString()}
                   </div>
                   <div className="w-16 text-right">
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDelete(file.name, file.isDirectory); }}
-                      className="text-muted hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
+                      className="text-muted hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
                     >
                       <Trash2 size={18} />
                     </button>
                   </div>
                 </div>
-              ))
-            )}
+                ))
+              )}
+            </div>
           </div>
         </div>
       </CardContent>

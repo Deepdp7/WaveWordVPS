@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Link, useNavigate } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { Menu, X } from 'lucide-react';
 
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { PlansPage } from './pages/public/PlansPage';
@@ -15,6 +16,7 @@ import { Footer } from './components/Footer';
 
 const Navbar = () => {
   const { isAuthenticated, logout, user } = useAuth();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   return (
     <nav className="fixed w-full z-50 glass border-b border-border">
@@ -22,40 +24,76 @@ const Navbar = () => {
         <div className="flex items-center justify-between h-20">
           <div className="flex items-center">
             <Link to="/" className="flex items-center gap-2 group">
-              <img src="/logo.png" alt="Wave Word Logo" className="h-16 w-auto object-contain" />
-              <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-text to-muted">
+              <img src="/logo.png" alt="Wave Word Logo" className="h-12 md:h-16 w-auto object-contain" />
+              <span className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-text to-muted hidden sm:block">
                 Wave Word VPS Hosting
               </span>
             </Link>
           </div>
-          <div className="hidden md:block">
-            <div className="ml-10 flex items-center space-x-8">
-              <Link to="/plans/static" className="text-muted hover:text-text transition-colors">Shared Hosting</Link>
-              <Link to="/plans/lite_vps" className="text-muted hover:text-text transition-colors">Lite VPS</Link>
-              <Link to="/plans/vps" className="text-muted hover:text-text transition-colors">VPS Hosting</Link>
-              {isAuthenticated ? (
-                <>
-                  <Link to="/dashboard" className="text-muted hover:text-text transition-colors">Dashboard</Link>
-                  {user?.role === 'admin' && <Link to="/admin" className="text-primary hover:text-primary-hover transition-colors font-medium">Admin</Link>}
-                  
-                  <div className="flex items-center gap-6 border-l border-border pl-6">
-                    <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">Logout</button>
-                  </div>
-                </>
-              ) : (
-                <>
-                  <div className="flex items-center gap-6 border-l border-border pl-6">
-                    <Link to="/login" className="text-muted hover:text-text transition-colors">Login</Link>
-                  </div>
-                  <Link to="/signup" className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                    Get Started
-                  </Link>
-                </>
-              )}
-            </div>
+
+          {/* Mobile Menu Button */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="text-muted hover:text-text focus:outline-none"
+            >
+              {isMobileMenuOpen ? <X size={28} /> : <Menu size={28} />}
+            </button>
+          </div>
+
+          {/* Desktop Menu */}
+          <div className="hidden md:flex items-center space-x-8 ml-10">
+            <Link to="/plans/static" className="text-muted hover:text-text transition-colors">Shared Hosting</Link>
+            <Link to="/plans/lite_vps" className="text-muted hover:text-text transition-colors">Lite VPS</Link>
+            <Link to="/plans/vps" className="text-muted hover:text-text transition-colors">VPS Hosting</Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/dashboard" className="text-muted hover:text-text transition-colors">Dashboard</Link>
+                {user?.role === 'admin' && <Link to="/admin" className="text-primary hover:text-primary-hover transition-colors font-medium">Admin</Link>}
+                <div className="flex items-center gap-6 border-l border-border pl-6">
+                  <button onClick={logout} className="text-red-400 hover:text-red-300 transition-colors">Logout</button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-6 border-l border-border pl-6">
+                  <Link to="/login" className="text-muted hover:text-text transition-colors">Login</Link>
+                </div>
+                <Link to="/signup" className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors">
+                  Get Started
+                </Link>
+              </>
+            )}
           </div>
         </div>
       </div>
+
+      {/* Mobile Menu Drawer */}
+      {isMobileMenuOpen && (
+        <div className="md:hidden bg-surface border-b border-border shadow-lg">
+          <div className="px-4 pt-2 pb-6 space-y-4 flex flex-col">
+            <Link to="/plans/static" onClick={() => setIsMobileMenuOpen(false)} className="text-muted hover:text-text transition-colors py-2">Shared Hosting</Link>
+            <Link to="/plans/lite_vps" onClick={() => setIsMobileMenuOpen(false)} className="text-muted hover:text-text transition-colors py-2">Lite VPS</Link>
+            <Link to="/plans/vps" onClick={() => setIsMobileMenuOpen(false)} className="text-muted hover:text-text transition-colors py-2">VPS Hosting</Link>
+            {isAuthenticated ? (
+              <>
+                <Link to="/dashboard" onClick={() => setIsMobileMenuOpen(false)} className="text-muted hover:text-text transition-colors py-2 border-t border-border mt-2">Dashboard</Link>
+                {user?.role === 'admin' && <Link to="/admin" onClick={() => setIsMobileMenuOpen(false)} className="text-primary hover:text-primary-hover transition-colors font-medium py-2">Admin Panel</Link>}
+                <button onClick={() => { logout(); setIsMobileMenuOpen(false); }} className="text-left text-red-400 hover:text-red-300 transition-colors py-2">Logout</button>
+              </>
+            ) : (
+              <>
+                <div className="border-t border-border mt-2 pt-4 flex flex-col space-y-4">
+                  <Link to="/login" onClick={() => setIsMobileMenuOpen(false)} className="text-muted hover:text-text transition-colors">Login</Link>
+                  <Link to="/signup" onClick={() => setIsMobileMenuOpen(false)} className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-lg font-medium transition-colors text-center w-full">
+                    Get Started
+                  </Link>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </nav>
   );
 };

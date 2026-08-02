@@ -68,7 +68,7 @@ export const DashboardPage = () => {
 
       {error && <div className="mb-4 text-red-500">{error}</div>}
 
-      <div className="flex gap-4 mb-8 border-b border-border">
+      <div className="flex gap-4 mb-8 border-b border-border overflow-x-auto whitespace-nowrap no-scrollbar">
         <button 
           onClick={() => setActiveTab('subs')} 
           className={`pb-4 px-2 font-medium ${activeTab === 'subs' ? 'text-primary border-b-2 border-primary' : 'text-muted hover:text-text'}`}
@@ -91,9 +91,9 @@ export const DashboardPage = () => {
 
       {/* Subscriptions Tab */}
       {activeTab === 'subs' && (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {data.subs.length === 0 ? (
-            <div className="col-span-2 text-center py-12 bg-surface border border-border rounded-xl">
+            <div className="md:col-span-2 text-center py-12 bg-surface border border-border rounded-xl">
               <p className="text-muted mb-4">You don't have any active subscriptions.</p>
               <Link to="/plans/static">
                 <Button variant="primary">Browse Plans</Button>

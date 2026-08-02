@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../../components/ui/Card';
 import { Button } from '../../components/ui/Button';
 import { apiClient } from '../../api/client';
+import { Eye, EyeOff } from 'lucide-react';
 
 export const SignupPage = () => {
   const [name, setName] = useState('');
@@ -11,6 +12,7 @@ export const SignupPage = () => {
   const [phone, setPhone] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleSignup = async (e: React.FormEvent) => {
@@ -71,14 +73,23 @@ export const SignupPage = () => {
             </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Password</label>
-              <input 
-                type="password" 
-                required 
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                className="w-full h-10 px-3 rounded-lg bg-surface border border-border text-text focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="••••••••"
-              />
+              <div className="relative">
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  required 
+                  value={password}
+                  onChange={e => setPassword(e.target.value)}
+                  className="w-full h-10 px-3 pr-10 rounded-lg bg-surface border border-border text-text focus:outline-none focus:ring-2 focus:ring-primary"
+                  placeholder="••••••••"
+                />
+                <button 
+                  type="button" 
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-text"
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
+              </div>
             </div>
             <Button type="submit" variant="primary" className="w-full" disabled={loading} onClick={handleSignup}>
               {loading ? 'Creating account...' : 'Sign Up'}

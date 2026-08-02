@@ -235,21 +235,132 @@ router.get('/domains', async (req, res) => {
 
     const configContent = await fs.readFile(path.join(cloudflaredDir, configFile), 'utf-8');
     
-    // Parse YAML ingress rules simply using Regex
-    const domains = [];
-    const regex = /-\s*hostname:\s*([^\s]+)\s*service:\s*([^\s]+)/g;
-    let match;
-    while ((match = regex.exec(configContent)) !== null) {
-      domains.push({
-        hostname: match[1],
-        service: match[2]
-      });
+    const rawDomains: any[] = [];
+    const lines = configContent.split('\n');
+    let currentHostname = '';
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const hostMatch = line.match(/-\s*hostname:\s*([^\s]+)/);
+      if (hostMatch) {
+        currentHostname = hostMatch[1];
+      }
+
+      const serviceMatch = line.match(/\s*service:\s*([^\s#]+)(.*)/);
+      if (serviceMatch && currentHostname) {
+        const serviceVal = serviceMatch[1];
+        const rest = serviceMatch[2];
+
+        let isActive = true;
+        let displayService = serviceVal;
+
+        if (serviceVal === 'http_status:404' && rest.includes('# ORIGINAL_SERVICE:')) {
+          isActive = false;
+          displayService = rest.split('# ORIGINAL_SERVICE:')[1].trim();
+        }
+
+        rawDomains.push({
+          hostname: currentHostname,
+          service: displayService,
+          isActive
+        });
+        currentHostname = '';
+      }
     }
 
-    res.json(domains);
+    const domainGroups = new Map();
+    rawDomains.forEach(d => {
+      const isWww = d.hostname.startsWith('www.');
+      const baseHostname = isWww ? d.hostname.replace('www.', '') : d.hostname;
+      
+      if (!domainGroups.has(baseHostname)) {
+        domainGroups.set(baseHostname, {
+          hostname: baseHostname,
+          service: d.service,
+          isActive: d.isActive,
+          aliases: []
+        });
+      }
+      
+      if (isWww) {
+        domainGroups.get(baseHostname).aliases.push(d.hostname);
+      }
+    });
+
+    res.json(Array.from(domainGroups.values()));
   } catch (err: any) {
     console.error('Failed to fetch domains:', err);
     res.status(500).json({ error: 'Failed to fetch domains', details: err.message });
+  }
+});
+
+router.post('/domains/toggle', async (req, res) => {
+  try {
+    const { hostname, isActive } = req.body;
+    if (!hostname) return res.status(400).json({ error: 'hostname required' });
+
+    const cloudflaredDir = '/home/deepdp/.cloudflared';
+    const files = await fs.readdir(cloudflaredDir);
+    const configFile = files.find(f => f.endsWith('.yml') || f.endsWith('.yaml'));
+    
+    if (!configFile) {
+      return res.status(404).json({ error: 'Config file not found' });
+    }
+
+    const configPath = path.join(cloudflaredDir, configFile);
+    let configContent = await fs.readFile(configPath, 'utf-8');
+    
+    const lines = configContent.split('\n');
+    let currentHostname = '';
+    let modified = false;
+
+    const hostnamesToToggle = [hostname];
+    if (!hostname.startsWith('www.')) {
+      hostnamesToToggle.push(`www.${hostname}`);
+    } else {
+      hostnamesToToggle.push(hostname.replace('www.', ''));
+    }
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i];
+      const hostMatch = line.match(/-\s*hostname:\s*([^\s]+)/);
+      if (hostMatch) {
+        currentHostname = hostMatch[1];
+      }
+
+      if (line.match(/\s*service:/) && hostnamesToToggle.includes(currentHostname)) {
+        if (isActive === false) {
+          // We want to turn it OFF
+          const serviceMatch = line.match(/\s*service:\s*([^\s#]+)/);
+          if (serviceMatch && serviceMatch[1] !== 'http_status:404') {
+            const originalService = serviceMatch[1];
+            // Replace service line while keeping indentation
+            lines[i] = line.replace(
+              /service:\s*([^\s#]+)/,
+              `service: http_status:404 # ORIGINAL_SERVICE: ${originalService}`
+            );
+            modified = true;
+          }
+        } else {
+          // We want to turn it ON
+          if (line.includes('http_status:404') && line.includes('# ORIGINAL_SERVICE:')) {
+            const originalService = line.split('# ORIGINAL_SERVICE:')[1].trim();
+            lines[i] = line.replace(/service:.*$/, `service: ${originalService}`);
+            modified = true;
+          }
+        }
+        // Don't break, because we might need to toggle both www and non-www
+      }
+    }
+
+    if (modified) {
+      await fs.writeFile(configPath, lines.join('\n'), 'utf-8');
+      await execPromise('pm2 restart cloudflared');
+    }
+
+    res.json({ success: true, modified });
+  } catch (err: any) {
+    res.status(500).json({ error: 'Failed to toggle domain', details: err.message });
   }
 });
 
