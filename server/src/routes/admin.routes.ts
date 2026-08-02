@@ -174,7 +174,7 @@ router.post('/fs/upload', upload.array('files'), (req, res) => {
   res.json({ success: true, count: (req.files as Express.Multer.File[]).length });
 });
 
-import archiver from 'archiver';
+const archiver = require('archiver') as any;
 
 router.get('/fs/download', async (req, res) => {
   try {
@@ -194,7 +194,7 @@ router.get('/fs/download', async (req, res) => {
         zlib: { level: 9 } // Sets the compression level.
       });
 
-      archive.on('error', (err) => {
+      archive.on('error', (err: any) => {
         res.status(500).send({ error: err.message });
       });
 

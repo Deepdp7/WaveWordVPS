@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.resetDatabase = exports.updateSupportTicket = exports.getSupportTickets = exports.provisionVps = exports.getVpsInstances = exports.updateSubscription = exports.getSubscriptions = exports.refundOrder = exports.getOrders = exports.getCustomers = exports.deletePlan = exports.updatePlan = exports.createPlan = exports.getPlans = void 0;
+exports.resetDatabase = exports.updateSupportTicket = exports.getSupportTickets = exports.provisionVps = exports.getVpsInstances = exports.updateSubscription = exports.getSubscriptions = exports.deleteOrder = exports.refundOrder = exports.getOrders = exports.getCustomers = exports.deletePlan = exports.updatePlan = exports.createPlan = exports.getPlans = void 0;
 const client_1 = require("@prisma/client");
 const email_service_1 = require("../services/email.service");
 const prisma = new client_1.PrismaClient();
@@ -39,7 +39,7 @@ exports.getCustomers = getCustomers;
 // Orders
 const getOrders = async (req, res) => {
     const orders = await prisma.order.findMany({
-        include: { user: { select: { name: true, email: true } }, plan: { select: { name: true } } },
+        include: { user: { select: { name: true, email: true } }, plan: { select: { name: true } }, invoices: true },
         orderBy: { createdAt: 'desc' }
     });
     res.json(orders);
@@ -51,6 +51,22 @@ const refundOrder = async (req, res) => {
     res.json(order);
 };
 exports.refundOrder = refundOrder;
+const deleteOrder = async (req, res) => {
+    const id = req.params.id;
+    try {
+        // Manually delete related records to avoid foreign key constraints
+        await prisma.invoice.deleteMany({ where: { orderId: id } });
+        await prisma.payment.deleteMany({ where: { orderId: id } });
+        await prisma.subscription.deleteMany({ where: { orderId: id } });
+        // Finally delete the order
+        await prisma.order.delete({ where: { id } });
+        res.json({ success: true, message: 'Order deleted successfully' });
+    }
+    catch (err) {
+        res.status(500).json({ error: 'Failed to delete order' });
+    }
+};
+exports.deleteOrder = deleteOrder;
 // Subscriptions
 const getSubscriptions = async (req, res) => {
     const subscriptions = await prisma.subscription.findMany({

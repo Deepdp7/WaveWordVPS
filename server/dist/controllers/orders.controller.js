@@ -15,9 +15,14 @@ const razorpay = new razorpay_1.default({
 const createOrder = async (req, res) => {
     try {
         const userId = req.user?.id;
-        const { planId, billingCycle } = req.body;
+        const { planId, billingCycle, quantity = 1 } = req.body;
         if (!userId) {
             res.status(401).json({ error: 'Unauthorized' });
+            return;
+        }
+        const user = await prisma.user.findUnique({ where: { id: userId } });
+        if (!user) {
+            res.status(401).json({ error: 'Session expired or user deleted. Please log out and log in again.' });
             return;
         }
         const plan = await prisma.hostingPlan.findUnique({ where: { id: planId } });
@@ -34,8 +39,7 @@ const createOrder = async (req, res) => {
             baseAmount = plan.price3Year * 36;
         else if (billingCycle === 'yearly' && plan.price1Year)
             baseAmount = plan.price1Year * 12; // fallback for old data
-        const gstAmount = Math.round(baseAmount * 0.18);
-        const amount = baseAmount + gstAmount;
+        const amount = baseAmount * quantity;
         // Create DB Order
         const dbOrder = await prisma.order.create({
             data: {
