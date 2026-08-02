@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '../ui/Card';
 import { Button } from '../ui/Button';
-import { Folder, FileText, Trash2, FolderPlus, FilePlus, ArrowLeft, Loader2, RefreshCw, UploadCloud, Upload } from 'lucide-react';
+import { Folder, FileText, Trash2, FolderPlus, FilePlus, ArrowLeft, Loader2, RefreshCw, UploadCloud, Upload, Download } from 'lucide-react';
 import { apiClient } from '../../api/client';
 import toast from 'react-hot-toast';
 import { useRef } from 'react';
@@ -78,6 +78,47 @@ export const FileManager = () => {
     } catch (err) {
       toast.error('Failed to delete');
     }
+  };
+
+  const handleDownload = (name: string) => {
+    const targetPath = currentPath.endsWith('/') ? `${currentPath}${name}` : `${currentPath}/${name}`;
+    const downloadUrl = `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/admin/fs/download?path=${encodeURIComponent(targetPath)}`;
+    
+    const a = document.createElement('a');
+    a.href = downloadUrl;
+    // Set headers or authentication if required. If standard token auth is used,
+    // window.open or <a> tag downloads won't send Authorization headers easily.
+    // However, for this admin UI, we can fetch the file as a blob and download it.
+    
+    toast.loading('Starting download...', { id: 'download' });
+    
+    apiClient.get(`/admin/fs/download?path=${encodeURIComponent(targetPath)}`, {
+      responseType: 'blob'
+    }).then((response) => {
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      // Get filename from Content-Disposition header if available
+      const disposition = response.headers['content-disposition'];
+      let filename = name;
+      if (disposition && disposition.indexOf('attachment') !== -1) {
+        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+        const matches = filenameRegex.exec(disposition);
+        if (matches != null && matches[1]) {
+          filename = matches[1].replace(/['"]/g, '');
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      toast.success('Download complete', { id: 'download' });
+    }).catch((error) => {
+      console.error('Download error:', error);
+      toast.error('Failed to download', { id: 'download' });
+    });
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -163,7 +204,7 @@ export const FileManager = () => {
             <div className="flex-1">Name</div>
             <div className="w-32 text-right hidden sm:block">Size</div>
             <div className="w-40 text-right hidden sm:block">Modified</div>
-            <div className="w-16"></div>
+            <div className="w-24"></div>
           </div>
           
           <div className="max-h-[60vh] overflow-y-auto">
@@ -176,7 +217,7 @@ export const FileManager = () => {
                 <div className="flex-1 font-medium">.. (Go Up)</div>
                 <div className="w-32 text-right text-muted hidden sm:block">-</div>
                 <div className="w-40 text-right text-muted hidden sm:block">-</div>
-                <div className="w-16"></div>
+                <div className="w-24"></div>
               </div>
             )}
             
@@ -204,10 +245,18 @@ export const FileManager = () => {
                   <div className="w-40 text-right text-sm text-muted hidden sm:block">
                     {new Date(file.mtime).toLocaleDateString()}
                   </div>
-                  <div className="w-16 text-right">
+                  <div className="w-24 text-right flex justify-end gap-2">
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); handleDownload(file.name); }}
+                      className="text-muted hover:text-blue-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      title="Download"
+                    >
+                      <Download size={18} />
+                    </button>
                     <button 
                       onClick={(e) => { e.stopPropagation(); handleDelete(file.name, file.isDirectory); }}
                       className="text-muted hover:text-red-400 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity"
+                      title="Delete"
                     >
                       <Trash2 size={18} />
                     </button>

@@ -174,6 +174,42 @@ router.post('/fs/upload', upload.array('files'), (req, res) => {
   res.json({ success: true, count: (req.files as Express.Multer.File[]).length });
 });
 
+import archiver from 'archiver';
+
+router.get('/fs/download', async (req, res) => {
+  try {
+    const targetPath = req.query.path as string;
+    if (!targetPath) {
+      return res.status(400).json({ error: 'Path is required' });
+    }
+
+    const stats = await fs.stat(targetPath);
+    const fileName = path.basename(targetPath);
+
+    if (stats.isFile()) {
+      res.download(targetPath, fileName);
+    } else if (stats.isDirectory()) {
+      res.attachment(`${fileName}.zip`);
+      const archive = archiver('zip', {
+        zlib: { level: 9 } // Sets the compression level.
+      });
+
+      archive.on('error', (err) => {
+        res.status(500).send({ error: err.message });
+      });
+
+      archive.pipe(res);
+      archive.directory(targetPath, false);
+      archive.finalize();
+    } else {
+      res.status(400).json({ error: 'Unsupported file type' });
+    }
+  } catch (err: any) {
+    console.error('Download error:', err);
+    res.status(500).json({ error: 'Failed to download', details: err.message });
+  }
+});
+
 router.post('/ai/command', async (req, res) => {
   try {
     const { command, password } = req.body;
