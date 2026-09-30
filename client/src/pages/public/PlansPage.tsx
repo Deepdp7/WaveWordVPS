@@ -4,16 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '../../comp
 import { Button } from '../../components/ui/Button';
 import { Check, Zap, Server, HardDrive, Loader2 } from 'lucide-react';
 import { apiClient } from '../../api/client';
+import { SharedHostingForm } from './SharedHostingForm';
 
 export const PlansPage = () => {
   const { type } = useParams<{ type: 'static' | 'vps' | 'lite_vps' }>();
   const isVps = type === 'vps';
   const isLiteVps = type === 'lite_vps';
+  const isStatic = type === 'static';
   const [plans, setPlans] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchPlans = async () => {
+      if (isStatic) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const res = await apiClient.get(`/plans?type=${type}`);
@@ -29,11 +35,15 @@ export const PlansPage = () => {
 
   if (loading) return <div className="min-h-screen pt-24 flex justify-center"><Loader2 className="animate-spin text-primary size-8" /></div>;
 
+  if (isStatic) {
+    return <SharedHostingForm />;
+  }
+
   return (
     <div className="pt-24 pb-12 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen">
       <div className="text-center mb-16">
         <h1 className="text-4xl md:text-5xl font-bold mb-4">
-          {isVps ? 'Cloud VPS Hosting' : isLiteVps ? 'Lite VPS Hosting' : 'Shared Web Hosting'}
+          {isVps ? 'Cloud VPS Hosting' : 'Lite VPS Hosting'}
         </h1>
         <p className="text-xl text-muted max-w-2xl mx-auto">
           {isVps 
